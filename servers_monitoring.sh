@@ -129,8 +129,12 @@ datasources:
 EOF
 
 # Запрос порта для Grafana
-read -p "Введи порт для Grafana (по умолчанию 3000): " GRAFANA_PORT
+show "Введите порт для Grafana (по умолчанию 3000): "
+read -p "" GRAFANA_PORT
 GRAFANA_PORT=${GRAFANA_PORT:-3000}
+
+# Замена порта в файле конфигурации Grafana
+sed -i "s/;http_port = 3000/http_port = $GRAFANA_PORT/" /etc/grafana/grafana.ini
 
 # Запуск и включение Grafana
 systemctl daemon-reload
@@ -139,10 +143,13 @@ systemctl start grafana-server > /dev/null
 
 # Запрос дополнительных серверов для мониторинга
 while true; do
-    read -p "Хочешь добавить еще один сервер для мониторинга? (Y/N): " ADD_SERVER
+    show "Хочешь добавить еще один сервер для мониторинга? (Y/N): "
+    read -p "" ADD_SERVER
     if [[ "$ADD_SERVER" == "Y" ]]; then
-        read -p "Введи IP адрес сервера: " SERVER_IP
-        read -p "Введи имя сервера: " SERVER_NAME
+        show "Введи IP адрес сервера: "
+        read -p "" SERVER_IP
+        show "Введи имя сервера: "
+        read -p "" SERVER_NAME
         show "Добавлен сервер: $SERVER_NAME с IP: $SERVER_IP"
 
         # Добавление конфигурации для нового сервера в prometheus.yml
