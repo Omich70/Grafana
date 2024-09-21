@@ -1,13 +1,18 @@
 #!/bin/bash
 
-# Терракотовый цвет для текста
+# Цвета для текста
 TERRACOTTA='\033[38;5;208m'
+BLUE='\033[34m'
 BOLD='\033[1m'
 NC='\033[0m'
 
-# Функция для терракотового жирного текста
+# Функции для форматирования текста
 function show() {
     echo -e "${TERRACOTTA}${BOLD}$1${NC}"
+}
+
+function show_blue() {
+    echo -e "${BLUE}$1${NC}"
 }
 
 # ASCII-арт
@@ -129,8 +134,8 @@ datasources:
 EOF
 
 # Запрос порта для Grafana
-show "Введите порт для Grafana (по умолчанию 3000): "
-read -p "" GRAFANA_PORT
+echo -en "${TERRACOTTA}${BOLD}Введи порт для Grafana (по умолчанию 3000): ${NC}"
+read GRAFANA_PORT
 GRAFANA_PORT=${GRAFANA_PORT:-3000}
 
 # Замена порта в файле конфигурации Grafana
@@ -141,15 +146,24 @@ systemctl daemon-reload
 systemctl enable grafana-server > /dev/null
 systemctl start grafana-server > /dev/null
 
+# Запрос основного сервера и добавление в Prometheus
+echo -en "${TERRACOTTA}${BOLD}Введи имя основного сервера (на который сейчас происходит установка): ${NC}"
+read MAIN_SERVER_NAME
+
+cat <<EOF >> /etc/prometheus/prometheus.yml
+  - job_name: "$MAIN_SERVER_NAME"
+    static_configs:
+      - targets: ["$PROMETHEUS_IP:9100"]
+EOF
+
 # Запрос дополнительных серверов для мониторинга
 while true; do
-    show "Хочешь добавить еще один сервер для мониторинга? (Y/N): "
-    read -p "" ADD_SERVER
-    if [[ "$ADD_SERVER" == "Y" ]]; then
-        show "Введи IP адрес сервера: "
-        read -p "" SERVER_IP
-        show "Введи имя сервера: "
-        read -p "" SERVER_NAME
+    read -p "Хочешь добавить еще один сервер для мониторинга? (Y/N): " ADD_SERVER
+    if [[ "$ADD_SERVER" =~ ^[Yy]$ ]]; then
+        echo -en "${TERRACOTTA}${BOLD}Введи IP адрес сервера: ${NC}"
+        read SERVER_IP
+        echo -en "${TERRACOTTA}${BOLD}Введи имя сервера: ${NC}"
+        read SERVER_NAME
         show "Добавлен сервер: $SERVER_NAME с IP: $SERVER_IP"
 
         # Добавление конфигурации для нового сервера в prometheus.yml
@@ -173,6 +187,11 @@ systemctl status grafana-server --no-pager
 SERVER_IP=$(hostname -I | awk '{print $1}')
 
 # Вывод ссылки на Grafana
+echo
 show "Установка завершена."
-show "Теперь ты можешь мониторить состояние своих серверов в Grafana по адресу: http://$SERVER_IP:$GRAFANA_PORT"
-show "Присоединяйся к Нодатеке, будем ставить ноды вместе! https://t.me/cryptotesemnikov/778"
+echo
+show "Теперь ты можешь мониторить состояние своих серверов в Grafana по адресу: "
+show_blue "http://$SERVER_IP:$GRAFANA_PORT"
+echo
+show "Присоединяйся к Нодатеке, будем ставить ноды вместе! "
+show_blue "https://t.me/cryptotesemnikov/778"
