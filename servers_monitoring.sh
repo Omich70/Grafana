@@ -2,7 +2,7 @@
 
 # Цвета для текста
 TERRACOTTA='\033[38;5;208m'
-BLUE='\033[34m'
+LIGHT_BLUE='\033[38;5;117m'
 BOLD='\033[1m'
 NC='\033[0m'
 
@@ -12,7 +12,7 @@ function show() {
 }
 
 function show_blue() {
-    echo -e "${BLUE}$1${NC}"
+    echo -e "${LIGHT_BLUE}$1${NC}"
 }
 
 # ASCII-арт
@@ -150,15 +150,19 @@ systemctl start grafana-server > /dev/null
 echo -en "${TERRACOTTA}${BOLD}Введи имя основного сервера (на который сейчас происходит установка): ${NC}"
 read MAIN_SERVER_NAME
 
+# Получение реального IP сервера
+SERVER_IP=$(hostname -I | awk '{print $1}')
+
 cat <<EOF >> /etc/prometheus/prometheus.yml
   - job_name: "$MAIN_SERVER_NAME"
     static_configs:
-      - targets: ["$PROMETHEUS_IP:9100"]
+      - targets: ["$SERVER_IP:9100"]
 EOF
 
 # Запрос дополнительных серверов для мониторинга
 while true; do
-    read -p "Хочешь добавить еще один сервер для мониторинга? (Y/N): " ADD_SERVER
+    echo -en "${TERRACOTTA}${BOLD}Хочешь добавить еще один сервер для мониторинга? (Y/N): ${NC}" 
+    read ADD_SERVER
     if [[ "$ADD_SERVER" =~ ^[Yy]$ ]]; then
         echo -en "${TERRACOTTA}${BOLD}Введи IP адрес сервера: ${NC}"
         read SERVER_IP
@@ -186,12 +190,7 @@ systemctl status grafana-server --no-pager
 # Получение реального IP сервера
 SERVER_IP=$(hostname -I | awk '{print $1}')
 
-# Вывод ссылки на Grafana
-echo
-show "Установка завершена."
-echo
-show "Теперь ты можешь мониторить состояние своих серверов в Grafana по адресу: "
-show_blue "http://$SERVER_IP:$GRAFANA_PORT"
-echo
-show "Присоединяйся к Нодатеке, будем ставить ноды вместе! "
-show_blue "https://t.me/cryptotesemnikov/778"
+# Вывод информации о завершении установки
+echo -e "${TERRACOTTA}Установка завершена.\n"
+echo -en "${TERRACOTTA}Теперь ты можешь мониторить состояние своих серверов в Grafana по адресу: ${NC}${LIGHT_BLUE}http://$SERVER_IP:$GRAFANA_PORT${NC}\n\n"
+echo -en "${TERRACOTTA}Присоединяйся к Нодатеке, будем ставить ноды вместе! ${NC}${LIGHT_BLUE}https://t.me/cryptotesemnikov/778${NC}\n"
