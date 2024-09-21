@@ -1,14 +1,17 @@
 #!/bin/bash
 
-echo "----------------------------------------------------------------------"
+# Терракотовый цвет для текста
 TERRACOTTA='\033[38;5;208m'
+BOLD='\033[1m'
 NC='\033[0m'
 
-# Вывод терракотового текста
+# Функция для терракотового жирного текста
 function show() {
-    echo -e "${TERRACOTTA}$1${NC}"
+    echo -e "${TERRACOTTA}${BOLD}$1${NC}"
 }
 
+# ASCII-арт
+echo "----------------------------------------------------------------------"
 show '███╗   ██╗ ██████╗ ██████╗  █████╗ ████████╗███████╗██╗  ██╗ █████╗ '
 show '████╗  ██║██╔═══██╗██╔══██╗██╔══██╗╚══██╔══╝██╔════╝██║ ██╔╝██╔══██╗'
 show '██╔██╗ ██║██║   ██║██║  ██║███████║   ██║   █████╗  █████╔╝ ███████║'
@@ -17,21 +20,21 @@ show '██║ ╚████║╚██████╔╝██████�
 show '╚═╝  ╚═══╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝'
 echo "----------------------------------------------------------------------"
 
-# Установка переменных
+# Установка переменных версий
 PROMETHEUS_VERSION="2.54.1"
 NODE_EXPORTER_VERSION="1.8.2"
 GRAFANA_VERSION="11.2.0"
 
 # Установка Prometheus
-echo "Установка Prometheus..."
+show "Установка Prometheus..."
 cd /tmp
-wget https://github.com/prometheus/prometheus/releases/download/v$PROMETHEUS_VERSION/prometheus-$PROMETHEUS_VERSION.linux-amd64.tar.gz > /dev/null
+wget -q https://github.com/prometheus/prometheus/releases/download/v$PROMETHEUS_VERSION/prometheus-$PROMETHEUS_VERSION.linux-amd64.tar.gz
 tar xvfz prometheus-$PROMETHEUS_VERSION.linux-amd64.tar.gz > /dev/null
-mv prometheus-$PROMETHEUS_VERSION.linux-amd64/prometheus /usr/bin/ > /dev/null
-rm -rf /tmp/prometheus* > /dev/null
-mkdir -p /etc/prometheus > /dev/null
-mkdir -p /etc/prometheus/data > /dev/null
+mv prometheus-$PROMETHEUS_VERSION.linux-amd64/prometheus /usr/bin/
+rm -rf /tmp/prometheus*
+mkdir -p /etc/prometheus /etc/prometheus/data
 
+# Создание файла конфигурации для Prometheus
 cat <<EOF> /etc/prometheus/prometheus.yml
 global:
   scrape_interval: 15s
@@ -41,12 +44,11 @@ scrape_configs:
       - targets: ["localhost:9090"]
 EOF
 
-useradd -rs /bin/false prometheus > /dev/null
-chown prometheus:prometheus /usr/bin/prometheus > /dev/null
-chown prometheus:prometheus /etc/prometheus > /dev/null
-chown prometheus:prometheus /etc/prometheus/prometheus.yml > /dev/null
-chown prometheus:prometheus /etc/prometheus/data > /dev/null
+# Настройка пользователя и прав для Prometheus
+useradd -rs /bin/false prometheus
+chown -R prometheus:prometheus /usr/bin/prometheus /etc/prometheus
 
+# Создание и включение службы Prometheus
 cat <<EOF> /etc/systemd/system/prometheus.service
 [Unit]
 Description=Prometheus Server
@@ -65,21 +67,23 @@ ExecStart=/usr/bin/prometheus \
 WantedBy=multi-user.target
 EOF
 
-systemctl daemon-reload > /dev/null
-systemctl start prometheus > /dev/null
-systemctl enable prometheus > /dev/null
+systemctl daemon-reload
+systemctl start prometheus
+systemctl enable prometheus
 
 # Установка Node Exporter
-echo "Установка Node Exporter..."
+show "Установка Node Exporter..."
 cd /tmp
-wget https://github.com/prometheus/node_exporter/releases/download/v$NODE_EXPORTER_VERSION/node_exporter-$NODE_EXPORTER_VERSION.linux-amd64.tar.gz > /dev/null
+wget -q https://github.com/prometheus/node_exporter/releases/download/v$NODE_EXPORTER_VERSION/node_exporter-$NODE_EXPORTER_VERSION.linux-amd64.tar.gz
 tar xvfz node_exporter-$NODE_EXPORTER_VERSION.linux-amd64.tar.gz > /dev/null
-mv node_exporter-$NODE_EXPORTER_VERSION.linux-amd64/node_exporter /usr/bin/ > /dev/null
-rm -rf /tmp/node_exporter* > /dev/null
+mv node_exporter-$NODE_EXPORTER_VERSION.linux-amd64/node_exporter /usr/bin/
+rm -rf /tmp/node_exporter*
 
-useradd -rs /bin/false node_exporter > /dev/null
-chown node_exporter:node_exporter /usr/bin/node_exporter > /dev/null
+# Настройка пользователя и прав для Node Exporter
+useradd -rs /bin/false node_exporter
+chown node_exporter:node_exporter /usr/bin/node_exporter
 
+# Создание и включение службы Node Exporter
 cat <<EOF> /etc/systemd/system/node_exporter.service
 [Unit]
 Description=Prometheus Node Exporter
@@ -96,26 +100,25 @@ ExecStart=/usr/bin/node_exporter
 WantedBy=multi-user.target
 EOF
 
-systemctl daemon-reload > /dev/null
-systemctl start node_exporter > /dev/null
-systemctl enable node_exporter > /dev/null
+systemctl daemon-reload
+systemctl start node_exporter
+systemctl enable node_exporter
 
 # Установка Grafana
-echo "Установка Grafana..."
+show "Установка Grafana..."
 apt-get install -y apt-transport-https software-properties-common wget > /dev/null
-mkdir -p /etc/apt/keyrings/ > /dev/null
+mkdir -p /etc/apt/keyrings/
 wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor | sudo tee /etc/apt/keyrings/grafana.gpg > /dev/null
 echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main" | sudo tee -a /etc/apt/sources.list.d/grafana.list > /dev/null
 apt-get update > /dev/null
 apt-get install -y adduser libfontconfig1 musl > /dev/null
-wget https://dl.grafana.com/oss/release/grafana_${GRAFANA_VERSION}_amd64.deb > /dev/null
+wget -q https://dl.grafana.com/oss/release/grafana_${GRAFANA_VERSION}_amd64.deb
 dpkg -i grafana_${GRAFANA_VERSION}_amd64.deb > /dev/null
 echo "export PATH=/usr/share/grafana/bin:$PATH" >> /etc/profile
 
 # Настройка источника данных Prometheus в Grafana
-echo "Настройка источника данных Prometheus в Grafana..."
-read -p "Введите IP адрес вашего сервера Prometheus (по умолчанию 127.0.0.1): " PROMETHEUS_IP
-PROMETHEUS_IP=${PROMETHEUS_IP:-127.0.0.1}
+show "Настройка источника данных Prometheus в Grafana..."
+PROMETHEUS_IP="127.0.0.1"
 
 cat <<EOF> /etc/grafana/provisioning/datasources/prometheus.yaml
 apiVersion: 1
@@ -130,17 +133,17 @@ read -p "Введи порт для Grafana (по умолчанию 3000): " GR
 GRAFANA_PORT=${GRAFANA_PORT:-3000}
 
 # Запуск и включение Grafana
-systemctl daemon-reload > /dev/null
+systemctl daemon-reload
 systemctl enable grafana-server > /dev/null
 systemctl start grafana-server > /dev/null
 
-# Запрос дополнительных серверов
+# Запрос дополнительных серверов для мониторинга
 while true; do
     read -p "Хочешь добавить еще один сервер для мониторинга? (Y/N): " ADD_SERVER
     if [[ "$ADD_SERVER" == "Y" ]]; then
         read -p "Введи IP адрес сервера: " SERVER_IP
         read -p "Введи имя сервера: " SERVER_NAME
-        echo "Добавлен сервер: $SERVER_NAME с IP: $SERVER_IP"
+        show "Добавлен сервер: $SERVER_NAME с IP: $SERVER_IP"
 
         # Добавление конфигурации для нового сервера в prometheus.yml
         cat <<EOF >> /etc/prometheus/prometheus.yml
@@ -163,8 +166,6 @@ systemctl status grafana-server --no-pager
 SERVER_IP=$(hostname -I | awk '{print $1}')
 
 # Вывод ссылки на Grafana
-echo "Установка завершена."
-echo "Запусти второй скрипт на всех добавленных серверах."
-echo "Теперь ты можешь мониторить состояние своих серверов в Grafana по адресу: http://$SERVER_IP:$GRAFANA_PORT"
-echo ""
-echo "Присоединяйся к Нодатеке, будем ставить ноды вместе!  https://t.me/cryptotesemnikov/778"
+show "Установка завершена."
+show "Теперь ты можешь мониторить состояние своих серверов в Grafana по адресу: http://$SERVER_IP:$GRAFANA_PORT"
+show "Присоединяйся к Нодатеке, будем ставить ноды вместе! https://t.me/cryptotesemnikov/778"
