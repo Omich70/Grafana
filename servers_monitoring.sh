@@ -185,9 +185,9 @@ EOF
 done
 
 # Проверка статуса сервисов
-systemctl restart prometheus
-systemctl status node_exporter
-systemctl status grafana-server
+systemctl restart prometheus --no-pager
+systemctl status node_exporter --no-pager
+systemctl status grafana-server --no-pager
 systemctl status prometheus --no-pager
 systemctl status node_exporter --no-pager
 systemctl status grafana-server --no-pager
