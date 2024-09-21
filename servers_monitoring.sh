@@ -123,7 +123,9 @@ echo "export PATH=/usr/share/grafana/bin:$PATH" >> /etc/profile
 
 # Настройка источника данных Prometheus в Grafana
 show "Настройка источника данных Prometheus в Grafana..."
-PROMETHEUS_IP="127.0.0.1"
+
+# Получение реального IP сервера
+PROMETHEUS_IP=$(hostname -I | awk '{print $1}')
 
 cat <<EOF> /etc/grafana/provisioning/datasources/prometheus.yaml
 apiVersion: 1
@@ -191,6 +193,6 @@ systemctl status grafana-server --no-pager
 SERVER_IP=$(hostname -I | awk '{print $1}')
 
 # Вывод информации о завершении установки
-echo -e "${TERRACOTTA}Установка завершена.\n"
-echo -en "${TERRACOTTA}Теперь ты можешь мониторить состояние своих серверов в Grafana по адресу: ${NC}${LIGHT_BLUE}http://$SERVER_IP:$GRAFANA_PORT${NC}\n\n"
-echo -en "${TERRACOTTA}Присоединяйся к Нодатеке, будем ставить ноды вместе! ${NC}${LIGHT_BLUE}https://t.me/cryptotesemnikov/778${NC}\n"
+echo -e "${TERRACOTTA}${BOLD}Установка завершена.\n"
+echo -en "${TERRACOTTA}${BOLD}Теперь ты можешь мониторить состояние своих серверов в Grafana по адресу: ${NC}${LIGHT_BLUE}http://$SERVER_IP:$GRAFANA_PORT${NC}\n\n"
+echo -en "${TERRACOTTA}${BOLD}Присоединяйся к Нодатеке, будем ставить ноды вместе! ${NC}${LIGHT_BLUE}https://t.me/cryptotesemnikov/778${NC}\n"
