@@ -14,7 +14,7 @@ show '████╗  ██║██╔═══██╗██╔══██
 show '██╔██╗ ██║██║   ██║██║  ██║███████║   ██║   █████╗  █████╔╝ ███████║'
 show '██║╚██╗██║██║   ██║██║  ██║██╔══██║   ██║   ██╔══╝  ██╔═██╗ ██╔══██║'
 show '██║ ╚████║╚██████╔╝██████╔╝██║  ██║   ██║   ███████╗██║  ██╗██║  ██║'
-show '╚═╝  ╚═══╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝'
+show '╚═╝  ╚═══╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝'
 echo "----------------------------------------------------------------------"
 
 # Установка переменных
@@ -25,12 +25,12 @@ GRAFANA_VERSION="11.2.0"
 # Установка Prometheus
 echo "Установка Prometheus..."
 cd /tmp
-wget https://github.com/prometheus/prometheus/releases/download/v$PROMETHEUS_VERSION/prometheus-$PROMETHEUS_VERSION.linux-amd64.tar.gz
-tar xvfz prometheus-$PROMETHEUS_VERSION.linux-amd64.tar.gz
-mv prometheus-$PROMETHEUS_VERSION.linux-amd64/prometheus /usr/bin/
-rm -rf /tmp/prometheus*
-mkdir -p /etc/prometheus
-mkdir -p /etc/prometheus/data
+wget https://github.com/prometheus/prometheus/releases/download/v$PROMETHEUS_VERSION/prometheus-$PROMETHEUS_VERSION.linux-amd64.tar.gz > /dev/null
+tar xvfz prometheus-$PROMETHEUS_VERSION.linux-amd64.tar.gz > /dev/null
+mv prometheus-$PROMETHEUS_VERSION.linux-amd64/prometheus /usr/bin/ > /dev/null
+rm -rf /tmp/prometheus* > /dev/null
+mkdir -p /etc/prometheus > /dev/null
+mkdir -p /etc/prometheus/data > /dev/null
 
 cat <<EOF> /etc/prometheus/prometheus.yml
 global:
@@ -41,11 +41,11 @@ scrape_configs:
       - targets: ["localhost:9090"]
 EOF
 
-useradd -rs /bin/false prometheus
-chown prometheus:prometheus /usr/bin/prometheus
-chown prometheus:prometheus /etc/prometheus
-chown prometheus:prometheus /etc/prometheus/prometheus.yml
-chown prometheus:prometheus /etc/prometheus/data
+useradd -rs /bin/false prometheus > /dev/null
+chown prometheus:prometheus /usr/bin/prometheus > /dev/null
+chown prometheus:prometheus /etc/prometheus > /dev/null
+chown prometheus:prometheus /etc/prometheus/prometheus.yml > /dev/null
+chown prometheus:prometheus /etc/prometheus/data > /dev/null
 
 cat <<EOF> /etc/systemd/system/prometheus.service
 [Unit]
@@ -65,20 +65,20 @@ ExecStart=/usr/bin/prometheus \
 WantedBy=multi-user.target
 EOF
 
-systemctl daemon-reload
-systemctl start prometheus
-systemctl enable prometheus
+systemctl daemon-reload > /dev/null
+systemctl start prometheus > /dev/null
+systemctl enable prometheus > /dev/null
 
 # Установка Node Exporter
 echo "Установка Node Exporter..."
 cd /tmp
-wget https://github.com/prometheus/node_exporter/releases/download/v$NODE_EXPORTER_VERSION/node_exporter-$NODE_EXPORTER_VERSION.linux-amd64.tar.gz
-tar xvfz node_exporter-$NODE_EXPORTER_VERSION.linux-amd64.tar.gz
-mv node_exporter-$NODE_EXPORTER_VERSION.linux-amd64/node_exporter /usr/bin/
-rm -rf /tmp/node_exporter*
+wget https://github.com/prometheus/node_exporter/releases/download/v$NODE_EXPORTER_VERSION/node_exporter-$NODE_EXPORTER_VERSION.linux-amd64.tar.gz > /dev/null
+tar xvfz node_exporter-$NODE_EXPORTER_VERSION.linux-amd64.tar.gz > /dev/null
+mv node_exporter-$NODE_EXPORTER_VERSION.linux-amd64/node_exporter /usr/bin/ > /dev/null
+rm -rf /tmp/node_exporter* > /dev/null
 
-useradd -rs /bin/false node_exporter
-chown node_exporter:node_exporter /usr/bin/node_exporter
+useradd -rs /bin/false node_exporter > /dev/null
+chown node_exporter:node_exporter /usr/bin/node_exporter > /dev/null
 
 cat <<EOF> /etc/systemd/system/node_exporter.service
 [Unit]
@@ -96,20 +96,20 @@ ExecStart=/usr/bin/node_exporter
 WantedBy=multi-user.target
 EOF
 
-systemctl daemon-reload
-systemctl start node_exporter
-systemctl enable node_exporter
+systemctl daemon-reload > /dev/null
+systemctl start node_exporter > /dev/null
+systemctl enable node_exporter > /dev/null
 
 # Установка Grafana
 echo "Установка Grafana..."
-apt-get install -y apt-transport-https software-properties-common wget
-mkdir -p /etc/apt/keyrings/
+apt-get install -y apt-transport-https software-properties-common wget > /dev/null
+mkdir -p /etc/apt/keyrings/ > /dev/null
 wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor | sudo tee /etc/apt/keyrings/grafana.gpg > /dev/null
-echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main" | sudo tee -a /etc/apt/sources.list.d/grafana.list
-apt-get update
-apt-get install -y adduser libfontconfig1 musl
-wget https://dl.grafana.com/oss/release/grafana_${GRAFANA_VERSION}_amd64.deb
-dpkg -i grafana_${GRAFANA_VERSION}_amd64.deb
+echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main" | sudo tee -a /etc/apt/sources.list.d/grafana.list > /dev/null
+apt-get update > /dev/null
+apt-get install -y adduser libfontconfig1 musl > /dev/null
+wget https://dl.grafana.com/oss/release/grafana_${GRAFANA_VERSION}_amd64.deb > /dev/null
+dpkg -i grafana_${GRAFANA_VERSION}_amd64.deb > /dev/null
 echo "export PATH=/usr/share/grafana/bin:$PATH" >> /etc/profile
 
 # Настройка источника данных Prometheus в Grafana
@@ -130,9 +130,9 @@ read -p "Введи порт для Grafana (по умолчанию 3000): " GR
 GRAFANA_PORT=${GRAFANA_PORT:-3000}
 
 # Запуск и включение Grafana
-systemctl daemon-reload
-systemctl enable grafana-server
-systemctl start grafana-server
+systemctl daemon-reload > /dev/null
+systemctl enable grafana-server > /dev/null
+systemctl start grafana-server > /dev/null
 
 # Запрос дополнительных серверов
 while true; do
