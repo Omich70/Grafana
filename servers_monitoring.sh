@@ -3,6 +3,7 @@
 # Цвета для текста
 TERRACOTTA='\033[38;5;208m'
 LIGHT_BLUE='\033[38;5;117m'
+RED='\033[0;31m'
 BOLD='\033[1m'
 NC='\033[0m'
 
@@ -13,6 +14,10 @@ function show() {
 
 function show_blue() {
     echo -e "${LIGHT_BLUE}$1${NC}"
+}
+
+function show_war() {
+    echo -e "${RED}$1${NC}"
 }
 
 # ASCII-арт
@@ -115,10 +120,10 @@ apt-get install -y apt-transport-https software-properties-common wget > /dev/nu
 mkdir -p /etc/apt/keyrings/
 wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor | sudo tee /etc/apt/keyrings/grafana.gpg > /dev/null
 echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main" | sudo tee -a /etc/apt/sources.list.d/grafana.list > /dev/null
-apt-get update > /dev/null
-apt-get install -y adduser libfontconfig1 musl > /dev/null
+apt-get update > /dev/null 2>&1
+apt-get install -y adduser libfontconfig1 musl > /dev/null 2>&1
 wget -q https://dl.grafana.com/oss/release/grafana_${GRAFANA_VERSION}_amd64.deb
-dpkg -i grafana_${GRAFANA_VERSION}_amd64.deb > /dev/null
+dpkg -i grafana_${GRAFANA_VERSION}_amd64.deb > /dev/null 2>&1
 echo "export PATH=/usr/share/grafana/bin:$PATH" >> /etc/profile
 
 # Настройка источника данных Prometheus в Grafana
@@ -136,6 +141,8 @@ datasources:
 EOF
 
 # Запрос порта для Grafana
+show_war "! Переключи раскладку клавиатуры на ENG"
+show_war "! Для удаления введеных данных нажми CTRL+U"
 echo -en "${TERRACOTTA}${BOLD}Введи порт для Grafana (по умолчанию 3000): ${NC}"
 read GRAFANA_PORT
 GRAFANA_PORT=${GRAFANA_PORT:-3000}
@@ -185,12 +192,12 @@ EOF
 done
 
 # Проверка статуса сервисов
-systemctl restart prometheus --no-pager
-systemctl restart node_exporter --no-pager
-systemctl restart grafana-server --no-pager
-systemctl status prometheus --no-pager
-systemctl status node_exporter --no-pager
-systemctl status grafana-server --no-pager
+systemctl restart prometheus > /dev/null 2>&1
+systemctl restart node_exporter > /dev/null 2>&1
+systemctl restart grafana-server > /dev/null 2>&1
+systemctl status prometheus > /dev/null 2>&1
+systemctl status node_exporter > /dev/null 2>&1
+systemctl status grafana-server > /dev/null 2>&1
 
 # Получение реального IP сервера
 SERVER_IP=$(hostname -I | awk '{print $1}')
